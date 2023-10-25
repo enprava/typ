@@ -56,7 +56,7 @@ def get_imgs_from_node(node,pag_path):
 
 def serialize_pickle_node(node,path,file_name):
     with open(os.path.join(path, file_name), 'wb') as pickle_file:
-        pickle.dump(node.page_source, pickle_file
+        pickle.dump(node.page_source, pickle_file)
 
 def deserialize_pickle_node(path):
     with open(path, 'rb') as archivo:
