@@ -5,10 +5,15 @@ import requests
 from selenium.webdriver.common.by import By
 import pickle
 from bs4 import BeautifulSoup
-
+from selenium.common.exceptions import NoSuchElementException
+import numpy as np
 
 def apply_action(driver, action):
-    return driver.find_element(action[0], action[1])
+    try:
+        return driver.find_element(action[0], action[1])
+    except NoSuchElementException:
+        return None
+
 
 def apply_actions(driver, actions):
     for action in actions:
@@ -17,19 +22,19 @@ def apply_actions(driver, actions):
 
 
 def get_pages(url, n_pages):
-    return list(map(lambda x: url.format(x), n_pages))
+    return np.frompyfunc(url.format, 1, 1)(np.array(n_pages))
 
 
 def init_driver(url):
     options = Options()
     options.add_argument("--headless")
-    driver = webdriver.Chrome(options=options)
+    driver = webdriver.ChromiumEdge(options=options)
     driver.get(url)
     return driver
 
 
 def get_drivers(paginas):
-    return list(map(lambda x: init_driver(x), paginas))
+    return np.frompyfunc(init_driver, 1,1)(paginas)
 
 
 def get_nodes_from_driver(drivers, action):
@@ -60,9 +65,9 @@ def get_imgs_from_node(node, pag_path):
             print("Error al descargar la imagen")
 
 
-def serialize_pickle_node(node, path, file_name):
-    with open(os.path.join(path, file_name), "wb") as pickle_file:
-        pickle.dump(node.page_source, pickle_file)
+def save_node(node, path, file_name):
+    with open(os.path.join(path, file_name), "wb") as file:
+        file.write(node.page_source)
 
 
 def deserialize_pickle_node(path):
@@ -76,5 +81,14 @@ def do_click(driver, actions):
     apply_actions(driver, actions).click()
 
 
+def do_click_per_driver(drivers, actions):
+    drivers = np.array(drivers)
+    np.vectorize(do_click)(drivers, actions)
+
+
 def scroll_down(driver):
     driver.execute_script("window.scrollTo(0, document.body.scrollHeight)")
+
+
+def drop_nones(nodes):
+    return nodes[nodes != None]
