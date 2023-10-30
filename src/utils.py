@@ -1,5 +1,5 @@
 from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.firefox.options import Options
 import os
 import requests
 from selenium.webdriver.common.by import By
@@ -29,7 +29,7 @@ def get_pages(url, n_pages):
 def init_driver(url):
     options = Options()
     options.add_argument("--headless")
-    driver = webdriver.ChromiumEdge(options=options)
+    driver = webdriver.Firefox(options=options)
     driver.get(url)
     return driver
 
@@ -38,9 +38,20 @@ def get_drivers(paginas):
     return np.vectorize(init_driver)(paginas)
 
 
+def get_html_from_url(pagina):
+    response = requests.get(pagina,timeout=5)
+    response.raise_for_status()
+    html_content = response.text
+    return html_content
+def get_html_from_urls(paginas):
+    return np.vectorize(get_html_from_url)(paginas)
+
 def get_nodes_from_driver(drivers, action):
     return np.vectorize(lambda x: x.find_elements(action[0],action[1]))(drivers)
 
+def get_nodes_from_htmls(htmls):
+
+    return [BeautifulSoup(html, "html.parser") for html in htmls]
 def close_drivers(drivers):
     np.vectorize(lambda x: x.close())(drivers)
 def get_href_nodes_from_nodes(nodes):
@@ -56,19 +67,23 @@ def write_html(row):
     if not os.path.exists(path):
         os.makedirs(path)
     with open(os.path.join(path,file_name),'w',encoding='utf-8') as file:
-        file.write(node.page_source)
+        file.write(node)
 
 
 
-
+def download_images_from_rows(htmls,paths):
+    array_zip = np.stack((htmls, paths), axis=-1)
+    np.apply_along_axis(get_imgs_from_node_bs4,axis=1,arr=array_zip)
 def serialize_nodes_html(nodes,num_pag, common_path, files_name):
     nodes_write_path = np.vectorize(lambda x: common_path.format(x))(num_pag)
 
     array_zip = np.stack((nodes,nodes_write_path,files_name), axis=-1)
+    np.apply_along_axis(write_html, axis=1, arr=array_zip)
+    return nodes_write_path
 
-    return np.apply_along_axis(write_html,axis=1,arr=array_zip)
-
-def get_imgs_from_node(node, pag_path):
+def get_imgs_from_node(row):
+    node = BeautifulSoup(row[0],"html.parser")
+    pag_path = row[1]
     if not os.path.exists(os.path.join(pag_path, "imagenes")):
         os.makedirs(os.path.join(pag_path, "imagenes"))
 
@@ -88,10 +103,17 @@ def get_imgs_from_node(node, pag_path):
             print("Error al descargar la imagen")
 
 
-import os
 
 
-def get_imgs_from_node_bs4(node, pag_path):
+def get_ahref_node_from_bs4_nodes(nodes):
+    return [x.find("a")['href'] for x in nodes]
+def apply_action_to_bs4_nodes(nodes,actions):
+
+
+    return [x.find_all(actions[0],actions[1]) for x in nodes]
+def get_imgs_from_node_bs4(row):
+    node = BeautifulSoup(row[0], "html.parser")
+    pag_path = row[1]
     if not os.path.exists(os.path.join(pag_path, "imagenes")):
         os.makedirs(os.path.join(pag_path, "imagenes"))
 

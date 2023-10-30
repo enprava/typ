@@ -13,66 +13,51 @@ def descargar_datos_destacamos(num_pag,categoria):
     paginas = get_pages("https://www.destacamos.com/"+categoria+"/{}/listings.html",num_pag)
 
     #obtener los drivers de estas url
-    drivers = get_drivers(paginas)
+    # drivers = get_drivers(paginas)
+    html_pages = get_html_from_urls(paginas)
     #sacamos el path comun
     common_path = os.path.join("databases","destacamos",categoria,"{}")
     #escribimos en local todos los html
-    serialize_nodes_html(drivers,num_pag,common_path,["destacamos_"+categoria+"_page_"+str(i)+".html" for i in num_pag])
+    serialize_nodes_html(html_pages,num_pag,common_path,["destacamos_"+categoria+"_page_"+str(i)+".html" for i in num_pag])
 
 
     #sacamos los nodos de los anuncios dentro de cada driver
-    pag_nodes = get_nodes_from_driver(drivers,[By.CLASS_NAME,"titulo"])
+    # pag_nodes = get_nodes_from_driver(drivers,[By.CLASS_NAME,"titulo"])
+    pag_nodes = get_nodes_from_htmls(html_pages)
+    #sacamos los show
+    pag_nodes_shows = apply_action_to_bs4_nodes(pag_nodes,["h2",{"class":"titulo"}])
 
-    nodes_list_atr_a = [np.vectorize(lambda x: apply_action(x, [By.TAG_NAME,"a"]))(node) for node in pag_nodes]
-    # #obtenemos el nodo de la url de cada uno de ellos
-    get_nodes_hrefs = get_href_nodes_from_nodes(nodes_list_atr_a)
+    #sacamos los nodos a de cada uno de los nodos
 
-    #cerramos los drivers anteriores para abaratar la carga
-    # close_drivers(drivers)
+    #buscamos elementos
+    # nodes_list_atr_a = [np.vectorize(lambda x: apply_action(x, [By.TAG_NAME,"a"]))(node) for node in pag_nodes]
+    nodes_list_atr_a = [get_ahref_node_from_bs4_nodes(nodes) for nodes in pag_nodes_shows]
 
-    # drivers_shows = np.apply_along_axis(get_drivers,axis=1,arr=get_nodes_hrefs)
-    drivers_shows_list = []
+
+    html_shows_pages = np.vectorize(get_html_from_urls)(nodes_list_atr_a)
+
     cnt = num_pag[0]
-    for a in get_nodes_hrefs:
+    drivers_shows_list = []
+    for i in range(len(html_shows_pages)):
 
+        path_comun = os.path.join("databases", "destacamos", categoria, str(i+num_pag[0]), "{}")
+        range_show = range(1,len(html_shows_pages[i])+1)
 
-        init_file_name = "destacamos_"+categoria+"_page_"+str(cnt)
-        cnt_show = 1
-        for b in a:
-            try:
-                init_path = os.path.join("databases","destacamos", categoria, str(cnt),str(cnt_show))
-                file_name = init_file_name + "_" + str(cnt_show) + ".html"
+        # escribimos en local todos los html
+        s_nodes = serialize_nodes_html(html_shows_pages[i],range_show , path_comun,
+                             ["destacamos_" + categoria + "_page_" + str(i+num_pag[0]) + "_" + str(w) + ".html"
+                              for w in range_show])
 
-                response = requests.get(b,timeout=5)
-                response.raise_for_status()
-                html_content = response.text
-                # print("Sacando el show numero ", cnt_show)
-                drivers_shows_list.append([html_content,init_path])
-                if not os.path.exists(init_path):
-                    os.makedirs(init_path)
-                with open(os.path.join(init_path, file_name), 'w', encoding='utf-8') as file:
-                    file.write(html_content)
-            except requests.exceptions.RequestException as e:
-                print(f"Error en la solicitud: {e}")
-                response = None
-            cnt_show = cnt_show+1
-        cnt = cnt+1
-
-
-    for nod in drivers_shows_list:
-        soup = BeautifulSoup(nod[0],"html.parser")
-
-        get_imgs_from_node_bs4(soup,nod[1])
-
+        download_images_from_rows(html_shows_pages[i],s_nodes)
 
 
 num_paginas_a_scrapear = 1320
-categoria_a_scrapear = "1-chicas-escorts"
+categoria_a_scrapear = "9-escorts-lujo"
 for i in range(1,int(num_paginas_a_scrapear/2)):
-    try:
-        descargar_datos_destacamos(range(2*i,(2*i)+2),categoria_a_scrapear)
-    except:
-        print("Error encontrado descargando la página")
+
+    descargar_datos_destacamos(range(2*i,(2*i)+2),categoria_a_scrapear)
+
+
     end_time = time.time()
     print("El proceso descargando por la página " +str(2*i)+" tardando: ",end_time - start_time)
 
