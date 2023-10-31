@@ -1,23 +1,20 @@
-# # from selenium import webdriver
 from selenium.webdriver.common.by import By
 from utils import *
-import itertools
-#
-# driver = webdriver.Firefox()
-# driver.get('http://trackwine.indexageodata.com/')
-# acciones = [[By.CLASS_NAME, 'welcome']]
-# print(apply_actions(driver, acciones))
-# driver.close()
-
+import time
 
 npaginas = range(1,3)
 
-paginas = get_pages("https://www.destacamos.com/3-travestis/{}/listings.html",npaginas)
+paginas = get_pages("https://es-es.escort-advisor.com/escort/madrid/{}",npaginas)
+print(paginas)
 drivers = get_drivers(paginas)
+print(drivers)
+d_c = do_click_per_driver(drivers, [[By.CLASS_NAME, 'btn.btn-primary.btn-lg.cookie_disclaimer_button']])
+print(d_c)
+# nodes = get_nodes_from_driver(drivers,[By.CLASS_NAME,"serp_block_container"])
 
-nodes = get_nodes_from_driver(drivers,[By.CLASS_NAME,"titulo"])
-for node in nodes:
-    node = list(map(lambda x: apply_action(x, [By.TAG_NAME,"a"]),node))
-    print(node)
-    hrefs = get_href_from_nodes(node)
-    print(hrefs)
+# nodes = list(map(lambda x: list(map(lambda y: apply_action(y, [By.TAG_NAME,"a"]), x)), nodes))
+# nodes = drop_nones(nodes)
+# print(nodes)
+# hrefs = list(map(lambda x: get_href_from_nodes(x), nodes))
+# shows = list(map(lambda x: get_drivers(x), hrefs))
+# # print(shows)
