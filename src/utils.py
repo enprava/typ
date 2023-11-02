@@ -6,7 +6,6 @@ from selenium.webdriver.common.by import By
 import pickle
 from bs4 import BeautifulSoup
 from selenium.common.exceptions import NoSuchElementException
-from selenium_stealth import stealth
 import numpy as np
 
 
@@ -156,14 +155,22 @@ def get_imgs_from_node_bs4(row):
         else:
             print("La URL de la imagen es nula o no válida")
 
+
 def save_drivers(drivers, path):
     if not os.path.exists(path):
         os.makedirs(path)
-    
+
 
 def save_node(node, path, file_name):
-    with open(os.path.join(path, file_name), "wb") as file:
+    with open(os.path.join(path, file_name), "w", encoding='utf-8') as file:
         file.write(node.page_source)
+
+
+def save_pages(drivers, path):
+    if not os.path.exists(path):
+        os.makedirs(path)
+    for i in range(len(drivers)):
+        save_node(drivers[i], path, str(i+1) + ".html")
 
 
 def deserialize_pickle_node(path):
@@ -187,3 +194,18 @@ def scroll_down(driver):
 
 def drop_nones(nodes):
     return nodes[nodes != None]
+
+def download_slow_as_a_turtle(hrefs, path):
+    if not os.path.exists(path):
+        os.makedirs(path)
+    flat = []
+    for href in hrefs:
+        flat = flat + href
+    for href in flat:
+        driver = init_driver(href)
+        try:
+            do_click(driver, [[By.CSS_SELECTOR, '.cookie_disclaimer_button']])
+        except:
+            pass
+        save_node(driver, path, str(flat.index(href)+1)+'.html')
+        driver.close()
