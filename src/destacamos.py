@@ -51,13 +51,14 @@ def descargar_datos_destacamos(num_pag,categoria):
         download_images_from_rows(html_shows_pages[i],s_nodes)
 
 
-num_paginas_a_scrapear = 1320
-categoria_a_scrapear = "9-escorts-lujo"
+num_paginas_a_scrapear = 2
+categoria_a_scrapear = "5-masajes-y-terapias"
 for i in range(1,int(num_paginas_a_scrapear/2)):
+    try:
+        descargar_datos_destacamos(range(2*i,(2*i)+2),categoria_a_scrapear)
 
-    descargar_datos_destacamos(range(2*i,(2*i)+2),categoria_a_scrapear)
-
-
+    except:
+        print("Problema encontrado")
     end_time = time.time()
     print("El proceso descargando por la página " +str(2*i)+" tardando: ",end_time - start_time)
 

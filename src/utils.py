@@ -7,6 +7,9 @@ import pickle
 from bs4 import BeautifulSoup
 from selenium.common.exceptions import NoSuchElementException
 import numpy as np
+import logging
+
+logging.basicConfig(filename='errores.log', level=logging.ERROR, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
 def apply_action(driver, action):
     try:
@@ -22,7 +25,7 @@ def apply_actions(driver, actions):
 
 
 def get_pages(url, n_pages):
-    return np.vectorize(lambda x: url.format(x))(n_pages)
+    return np.frompyfunc(lambda x: url.format(x),1,1)(n_pages)
     # return np.frompyfunc(url.format, 1, 1)(np.array(n_pages))
 
 
@@ -39,12 +42,25 @@ def get_drivers(paginas):
 
 
 def get_html_from_url(pagina):
-    response = requests.get(pagina,timeout=5)
-    response.raise_for_status()
-    html_content = response.text
-    return html_content
+
+
+    try:
+        custom_headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/119.0',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+            'Accept-Languague': 'es-ES,es;q=0.8,en-US;q=0.5,en;q=0.3',
+            'Upgrade-Insecure-Requests' : '1'
+
+        }
+        response = requests.get(pagina,headers=custom_headers,timeout=15)
+        response.raise_for_status()
+        html_content = response.text
+        return html_content
+    except:
+        logging.error(pagina)
+        return None
 def get_html_from_urls(paginas):
-    return np.vectorize(get_html_from_url)(paginas)
+    return np.frompyfunc(get_html_from_url,1,1)(paginas)
 
 def get_nodes_from_driver(drivers, action):
     return np.vectorize(lambda x: x.find_elements(action[0],action[1]))(drivers)
@@ -75,7 +91,7 @@ def download_images_from_rows(htmls,paths):
     array_zip = np.stack((htmls, paths), axis=-1)
     np.apply_along_axis(get_imgs_from_node_bs4,axis=1,arr=array_zip)
 def serialize_nodes_html(nodes,num_pag, common_path, files_name):
-    nodes_write_path = np.vectorize(lambda x: common_path.format(x))(num_pag)
+    nodes_write_path = np.frompyfunc(lambda x: common_path.format(x),1,1)(num_pag)
 
     array_zip = np.stack((nodes,nodes_write_path,files_name), axis=-1)
     np.apply_along_axis(write_html, axis=1, arr=array_zip)
@@ -124,7 +140,10 @@ def get_imgs_from_node_bs4(row):
     for img_tag in img_tags:
         img_url = img_tag.get("src")
         if img_url:
-            img_name = os.path.join(pag_path, "imagenes", os.path.basename(img_url))
+            path_name = os.path.basename(img_url)
+            if "?" in os.path.basename(img_url):
+                path_name = path_name.split('?')[0]
+            img_name = os.path.join(pag_path, "imagenes", path_name)
 
             try:
                 response = requests.get(img_url,timeout=5)
