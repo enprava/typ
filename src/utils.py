@@ -1,5 +1,5 @@
 from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.firefox.options import Options
 import os
 import requests
 from selenium.webdriver.common.by import By
@@ -31,7 +31,7 @@ def get_pages(url, n_pages):
 def init_driver(url):
     options = Options()
     options.add_argument("--headless")
-    driver = webdriver.Chrome(options=options)
+    driver = webdriver.Firefox(options=options)
     driver.get(url)
     return driver
 
@@ -149,7 +149,8 @@ def get_imgs_from_node_bs4(row):
                     with open(img_name, "wb") as img_file:
                         img_file.write(response.content)
             except requests.exceptions.RequestException as e:
-                print(f"Error al descargar la imagen: {e}")
+                # print(f"Error al descargar la imagen: {e}")
+                continue
         else:
             print("La URL de la imagen es nula o no válida")
 
@@ -203,7 +204,6 @@ def download_slow_as_a_turtle(hrefs, path):
     for href in flat:
         driver = init_driver(href)
         anuncio_id = href.split('/')[-1]
-        print('INDEX: {}'.format(anuncio_id))
         custom_path = os.path.join(path, anuncio_id)
         try:
             do_click(driver, [[By.CSS_SELECTOR, ".cookie_disclaimer_button"]])
