@@ -79,7 +79,7 @@ for information in info:
             except:
                 logger.info('No hacemos click')
             logger.info("Guardando listas")
-            save_pages(drivers, f"databases/escort-advisor/lists/{categoria}")
+            save_pages(drivers, f"databases/escort-advisor/lists/{categoria}", array_paginas)
             nodes = get_nodes_from_driver(drivers, [By.CLASS_NAME, "serp_block_container"])
             nodes = list(
                 map(
