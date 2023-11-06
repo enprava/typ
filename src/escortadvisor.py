@@ -62,7 +62,6 @@ info = [
     {"15": "https://es-es.escort-advisor.com/escort/zamora/{}"},
     {"937": "https://es-es.escort-advisor.com/escort/zaragoza/{}"},
 ]
-info = [info[0]]
 global_start = time.time()
 for information in info:
     for anuncios, url in information.items():

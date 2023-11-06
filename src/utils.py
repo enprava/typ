@@ -113,7 +113,8 @@ def get_imgs_from_node(node, path):
                     img_file.write(response.content)
 
         except:
-            print("Error al descargar la imagen {}".format(img_url))
+            # print("Error al descargar la imagen {}".format(img_url))
+            continue
 
 
 def get_ahref_node_from_bs4_nodes(nodes):
