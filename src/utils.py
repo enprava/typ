@@ -7,6 +7,7 @@ import pickle
 from bs4 import BeautifulSoup
 from selenium.common.exceptions import NoSuchElementException
 import numpy as np
+import math
 
 
 def apply_action(driver, action):
@@ -60,7 +61,7 @@ def get_nodes_from_htmls(htmls):
 
 
 def close_drivers(drivers):
-    np.vectorize(lambda x: x.close())(drivers)
+    np.frompyfunc(lambda x: x.close(), 1, 1)(drivers)
 
 
 def get_href_nodes_from_nodes(nodes):
@@ -68,7 +69,6 @@ def get_href_nodes_from_nodes(nodes):
 
 
 def get_href_from_nodes(nodes):
-    print(nodes)
     return list(map(lambda x: x.get_attribute("href"), nodes))
 
 
@@ -96,17 +96,15 @@ def serialize_nodes_html(nodes, num_pag, common_path, files_name):
     return nodes_write_path
 
 
-def get_imgs_from_node(row):
-    node = BeautifulSoup(row[0], "html.parser")
-    pag_path = row[1]
-    if not os.path.exists(os.path.join(pag_path, "imagenes")):
-        os.makedirs(os.path.join(pag_path, "imagenes"))
+def get_imgs_from_node(node, path):
+    if not os.path.exists(os.path.join(path, "imagenes")):
+        os.makedirs(os.path.join(path, "imagenes"))
 
     img_tags = node.find_elements(By.TAG_NAME, "img")
     for img_tag in img_tags:
         img_url = img_tag.get_attribute("src")
 
-        img_name = os.path.join(pag_path, "imagenes", os.path.basename(img_url))
+        img_name = os.path.join(path, "imagenes", os.path.basename(img_url))
 
         try:
             response = requests.get(img_url)
@@ -115,7 +113,7 @@ def get_imgs_from_node(row):
                     img_file.write(response.content)
 
         except:
-            print("Error al descargar la imagen")
+            print("Error al descargar la imagen {}".format(img_url))
 
 
 def get_ahref_node_from_bs4_nodes(nodes):
@@ -162,15 +160,15 @@ def save_drivers(drivers, path):
 
 
 def save_node(node, path, file_name):
-    with open(os.path.join(path, file_name), "w", encoding='utf-8') as file:
+    with open(os.path.join(path, file_name), "w", encoding="utf-8") as file:
         file.write(node.page_source)
 
 
-def save_pages(drivers, path):
+def save_pages(drivers, path, pags):
     if not os.path.exists(path):
         os.makedirs(path)
     for i in range(len(drivers)):
-        save_node(drivers[i], path, str(i+1) + ".html")
+        save_node(drivers[i], path, str(pags[i]) + ".html")
 
 
 def deserialize_pickle_node(path):
@@ -195,6 +193,7 @@ def scroll_down(driver):
 def drop_nones(nodes):
     return nodes[nodes != None]
 
+
 def download_slow_as_a_turtle(hrefs, path):
     if not os.path.exists(path):
         os.makedirs(path)
@@ -203,9 +202,29 @@ def download_slow_as_a_turtle(hrefs, path):
         flat = flat + href
     for href in flat:
         driver = init_driver(href)
+        anuncio_id = href.split('/')[-1]
+        print('INDEX: {}'.format(anuncio_id))
+        custom_path = os.path.join(path, anuncio_id)
         try:
-            do_click(driver, [[By.CSS_SELECTOR, '.cookie_disclaimer_button']])
+            do_click(driver, [[By.CSS_SELECTOR, ".cookie_disclaimer_button"]])
         except:
-            pass
-        save_node(driver, path, str(flat.index(href)+1)+'.html')
+            print("No hacemos click")
+        if not os.path.exists(custom_path):
+            os.makedirs(custom_path)
+        save_node(driver, custom_path, anuncio_id + ".html")
+        get_imgs_from_node(driver, custom_path)
         driver.close()
+
+
+def get_array_5_len(number):
+    arrays = []
+    for i in range(1, number + 1, 5):
+        arrays.append(list(range(i, i + 5)))
+
+    def remove_index(arr, number):
+        if arr[-1] > number:
+            del arr[-1]
+            remove_index(arr, number)
+
+    remove_index(arrays[-1], number)
+    return arrays

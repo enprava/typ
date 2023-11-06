@@ -1,7 +1,11 @@
 from utils import *
 import time
 import math
-
+import logging
+import sys
+fmt = '[%(asctime)-15s] [%(levelname)s] %(name)s: %(message)s'
+logging.basicConfig(format=fmt, level=logging.INFO, stream=sys.stdout)
+logger = logging.getLogger('Escort Avisor')
 info = [
     {"607": "https://es-es.escort-advisor.com/escort/acoruna/{}"},
     {"328": "https://es-es.escort-advisor.com/escort/alava/{}"},
@@ -58,29 +62,37 @@ info = [
     {"15": "https://es-es.escort-advisor.com/escort/zamora/{}"},
     {"937": "https://es-es.escort-advisor.com/escort/zaragoza/{}"},
 ]
+info = [info[0]]
 global_start = time.time()
 for information in info:
     for anuncios, url in information.items():
         start_time = time.time()
         npages = math.ceil(int(anuncios) / 20)
         categoria = url.split("/")[-2]
-        paginas = get_pages(url, range(1, npages+1))
-        drivers = get_drivers(paginas)
-        do_click_per_driver(drivers, [[By.CSS_SELECTOR, ".cookie_disclaimer_button"]])
-        save_pages(drivers, f"databases/escort-advisor/lists/{categoria}")
-        nodes = get_nodes_from_driver(drivers, [By.CLASS_NAME, "serp_block_container"])
-        nodes = list(
-            map(
-                lambda x: list(map(lambda y: apply_action(y, [By.TAG_NAME, "a"]), x)), nodes
+        for array_paginas in get_array_5_len(npages):
+            paginas = get_pages(url, array_paginas)
+            logger.info('Obteniendo drivers de listas de {}'.format(categoria))
+            drivers = get_drivers(paginas)
+            try:
+                logger.info('Aceptando política de mayoría de edad')
+                do_click_per_driver(drivers, [[By.CSS_SELECTOR, ".cookie_disclaimer_button"]])
+            except:
+                logger.info('No hacemos click')
+            logger.info("Guardando listas")
+            save_pages(drivers, f"databases/escort-advisor/lists/{categoria}")
+            nodes = get_nodes_from_driver(drivers, [By.CLASS_NAME, "serp_block_container"])
+            nodes = list(
+                map(
+                    lambda x: list(map(lambda y: apply_action(y, [By.TAG_NAME, "a"]), x)), nodes
+                )
             )
-        )
-        for node in nodes:
-            del node[0]
-        hrefs = list(map(lambda x: get_href_from_nodes(x), nodes))
-        download_slow_as_a_turtle(hrefs, "databases/escort-advisor/shows/")
-        close_drivers(drivers)
-        end_time = time.time()
-        print('Se ha descargado {} en {} segundos'.format(url, end_time-start_time))
+            for node in nodes:
+                del node[0]
+            hrefs = list(map(lambda x: get_href_from_nodes(x), nodes))
+            download_slow_as_a_turtle(hrefs, f"databases/escort-advisor/shows/{categoria}")
+            close_drivers(drivers)
+            end_time = time.time()
+        logger.info('Se ha descargado {} en {} segundos'.format(url, end_time-start_time))
 global_end_time=time.time()
 
-print('Se ha descargado todo en {} segundos'.format(global_end_time-global_start))
+logger.info('Se ha descargado todo en {} segundos'.format(global_end_time-global_start))
