@@ -153,7 +153,6 @@ def get_imgs_from_node_bs4(soup, path):
 
 def get_image_from_url(url, path):
     image_name = url.split('/')[-1]
-    print(image_name)
     response = requests.get(url)
     with open(os.path.join(path,image_name), "wb") as img_file:
         img_file.write(response.content)
