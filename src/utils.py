@@ -7,6 +7,7 @@ import pickle
 from bs4 import BeautifulSoup
 from selenium.common.exceptions import NoSuchElementException
 import numpy as np
+import pandas as pd
 
 
 def apply_action(driver, action):
@@ -153,7 +154,17 @@ def get_imgs_from_node_bs4(soup, path):
 
 def get_image_from_url(url, path):
     image_name = url.split('/')[-1]
-    response = requests.get(url)
+    try:
+        response = requests.get(url)
+    except:
+        try:
+            response = requests.get(url)
+        except:
+            print('Error en el anuncio {}'.format(url))
+            csv = pd.read_csv('errores.csv')
+            csv.loc[len[csv]] = [url]
+            csv.to_csv('errores.csv', index=False)
+
     with open(os.path.join(path,image_name), "wb") as img_file:
         img_file.write(response.content)
         img_file.close()

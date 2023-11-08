@@ -41,6 +41,7 @@ for i in range(1, 1+npages):
         images = show_soup.select('.grouped_elements')
         logger.info('Obteniendo imagenes del anuncio')
         images_href = list(map(lambda x: url_shows.format(x.attrs.get('href')), images))
+        
         for image in images_href:
             get_image_from_url(image, 'databases/nuevapasion/{}/{}'.format(i, show_id))
     
