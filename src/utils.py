@@ -8,7 +8,7 @@ from bs4 import BeautifulSoup
 from selenium.common.exceptions import NoSuchElementException
 import numpy as np
 import pandas as pd
-
+import time
 
 def apply_action(driver, action):
     try:
@@ -158,6 +158,7 @@ def get_image_from_url(url, path):
         response = requests.get(url)
     except:
         try:
+            time.sleep(1)
             response = requests.get(url)
         except:
             print('Error en el anuncio {}'.format(url))

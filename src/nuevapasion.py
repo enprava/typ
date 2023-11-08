@@ -4,6 +4,8 @@ import requests
 import logging
 import sys
 from bs4 import BeautifulSoup
+import pandas as pd
+import time
 
 fmt = '[%(asctime)-15s] [%(levelname)s] %(name)s: %(message)s'
 logging.basicConfig(format=fmt, level=logging.INFO, stream=sys.stdout)
@@ -35,13 +37,23 @@ for i in range(1, 1+npages):
         show_id = href.split('/')[-1]
         if not os.path.exists('databases/nuevapasion/{}/{}'.format(i, show_id)):
             os.mkdir('databases/nuevapasion/{}/{}'.format(i, show_id))
-        show_response = requests.get(href)
+        try:
+            show_response = requests.get(href)
+        except:
+            try:
+                time.sleep(1)
+                show_response = requests.get(href)
+            except:
+                logger.info('Error en el anuncio {}'.format(href))
+                csv = pd.read_csv('errores.csv')
+                csv.loc[len[csv]] = [href]
+                csv.to_csv('errores.csv', index=False)
         show_soup = BeautifulSoup(show_response.text, 'html.parser')
         save_soup(show_soup, 'databases/nuevapasion/{}/{}'.format(i, show_id), show_id + '.html')
         images = show_soup.select('.grouped_elements')
         logger.info('Obteniendo imagenes del anuncio')
         images_href = list(map(lambda x: url_shows.format(x.attrs.get('href')), images))
-        
+
         for image in images_href:
             get_image_from_url(image, 'databases/nuevapasion/{}/{}'.format(i, show_id))
     
