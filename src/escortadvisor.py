@@ -3,9 +3,10 @@ import time
 import math
 import logging
 import sys
-fmt = '[%(asctime)-15s] [%(levelname)s] %(name)s: %(message)s'
+
+fmt = "[%(asctime)-15s] [%(levelname)s] %(name)s: %(message)s"
 logging.basicConfig(format=fmt, level=logging.INFO, stream=sys.stdout)
-logger = logging.getLogger('Escort Avisor')
+logger = logging.getLogger("Escort Advisor")
 info = [
     {"607": "https://es-es.escort-advisor.com/escort/acoruna/{}"},
     {"328": "https://es-es.escort-advisor.com/escort/alava/{}"},
@@ -68,30 +69,35 @@ for information in info:
         start_time = time.time()
         npages = math.ceil(int(anuncios) / 20)
         categoria = url.split("/")[-2]
-        for array_paginas in get_array_5_len(npages):
-            paginas = get_pages(url, array_paginas)
-            logger.info('Obteniendo drivers de listas de {}'.format(categoria))
-            drivers = get_drivers(paginas)
-            try:
-                logger.info('Aceptando política de mayoría de edad')
-                do_click_per_driver(drivers, [[By.CSS_SELECTOR, ".cookie_disclaimer_button"]])
-            except:
-                logger.info('No hacemos click')
-            logger.info("Guardando listas")
-            save_pages(drivers, f"databases/escort-advisor/lists/{categoria}", array_paginas)
-            nodes = get_nodes_from_driver(drivers, [By.CLASS_NAME, "serp_block_container"])
-            nodes = list(
-                map(
-                    lambda x: list(map(lambda y: apply_action(y, [By.TAG_NAME, "a"]), x)), nodes
-                )
+        for i in range(1, npages + 1):
+            logger.info(
+                "Descargando página {} de {}. Ciudad: {}".format(i, npages, categoria)
             )
-            for node in nodes:
-                del node[0]
-            hrefs = list(map(lambda x: get_href_from_nodes(x), nodes))
-            download_slow_as_a_turtle(hrefs, f"databases/escort-advisor/shows/{categoria}")
-            close_drivers(drivers)
+            driver = init_driver(url.format(i))
+            try:
+                logger.info("Aceptando política de mayoría de edad")
+                do_click(driver, [[By.CSS_SELECTOR, ".cookie_disclaimer_button"]])
+            except:
+                logger.info("No hacemos click")
+            logger.info("Guardando listas")
+            save_node(
+                driver, f"databases/escort-advisor/lists/{categoria}", str(i) + ".html"
+            )
+            nodes = driver.find_elements(By.CLASS_NAME, "serp_block_container")
+            nodes = list(map(lambda y: apply_actions(y, [[By.TAG_NAME, "a"]]), nodes))
+            del nodes[0]
+            hrefs = get_href_from_nodes(nodes)
+            logger.info("Comenzando extracción de shows")
+            download_slow_as_a_turtle(
+                hrefs, f"databases/escort-advisor/shows/{categoria}"
+            )
+            driver.close()
             end_time = time.time()
-        logger.info('Se ha descargado {} en {} segundos'.format(url, end_time-start_time))
-global_end_time=time.time()
+        logger.info(
+            "Se ha descargado {} en {} segundos".format(url, end_time - start_time)
+        )
+global_end_time = time.time()
 
-logger.info('Se ha descargado todo en {} segundos'.format(global_end_time-global_start))
+logger.info(
+    "Se ha descargado todo en {} segundos".format(global_end_time - global_start)
+)

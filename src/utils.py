@@ -30,7 +30,7 @@ def get_pages(url, n_pages):
 
 def init_driver(url):
     options = Options()
-    options.add_argument("--headless")
+    # options.add_argument("--headless")
     driver = webdriver.Firefox(options=options)
     driver.get(url)
     return driver
@@ -162,11 +162,13 @@ def save_drivers(drivers, path):
 
 
 def save_node(node, path, file_name):
+    if not os.path.exists(path):
+        os.makedirs(path)
     with open(os.path.join(path, file_name), "w", encoding="utf-8") as file:
         file.write(node.page_source)
 
 
-def save_pages(drivers, path, pags):
+def save_pages(drivers, path):
     if not os.path.exists(path):
         os.makedirs(path)
     for i in range(len(drivers)):
@@ -199,12 +201,10 @@ def drop_nones(nodes):
 def download_slow_as_a_turtle(hrefs, path):
     if not os.path.exists(path):
         os.makedirs(path)
-    flat = []
     for href in hrefs:
-        flat = flat + href
-    for href in flat:
         driver = init_driver(href)
         anuncio_id = href.split('/')[-1]
+        print('Descargando {}'.format(anuncio_id))
         custom_path = os.path.join(path, anuncio_id)
         try:
             do_click(driver, [[By.CSS_SELECTOR, ".cookie_disclaimer_button"]])
@@ -217,9 +217,9 @@ def download_slow_as_a_turtle(hrefs, path):
         driver.close()
 
 
-def get_array_5_len(number):
+def get_array_1_len(number):
     arrays = []
-    for i in range(1, number + 1, 5):
+    for i in range(1, number + 1, 1):
         arrays.append(list(range(i, i + 5)))
 
     def remove_index(arr, number):
