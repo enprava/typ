@@ -24,8 +24,11 @@ for i in range(1, 1+npages):
     logger.info('Creando sopa')
     soup = BeautifulSoup(response.text, 'html.parser')
     logger.info('Obteniendo enlaces de anuncios')
-    articles = list(soup.find_all('article'))
-    hrefs = list(map(lambda x: url_shows.format(x.attrs.get('onclick').split('\'')[1]), articles))
+    articles = list(soup.find_all('a', class_='d-flex flex-grow-1 my-2 card_np'))
+    hrefs = list(map(lambda x: url_shows.format(x.attrs.get('href')), articles))
+    # hrefs = []
+    # for article in articles:
+    #     hrefs.append(url_shows.format(article.attrs.get('href')))
     save_soup(soup,'databases/nuevapasion/{}'.format(i), str(i) + '.html')
     for href in hrefs:
         logger.info('Obteniendo anuncio {}'.format(href))
