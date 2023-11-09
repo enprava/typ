@@ -20,6 +20,8 @@ base = "https://hottescorts.com/{}-{}"
 descargados = pd.read_csv("data/descargados.csv")
 for categoria in ["escorts", "travestis"]:
     for ciudad in ciudades:
+        logger.info('Extrayendo {} de {}'.format(categoria, ciudad))
+
         current = base.format(categoria, ciudad)
         response_list = requests.get(current)
         soup_list = BeautifulSoup(response_list.text, "html.parser")
@@ -27,6 +29,7 @@ for categoria in ["escorts", "travestis"]:
         path_list = os.path.join(path, "list.html")
         if not os.path.exists(path):
             os.makedirs(path)
+        logger.info('Guardando lista')
         with open(path_list, "w", encoding="utf-8") as list_file:
             list_file.write(soup_list.prettify())
             list_file.close()
@@ -38,8 +41,10 @@ for categoria in ["escorts", "travestis"]:
         for href in hrefs:
             show_id = href.split(".com/")[-1]
             if (descargados['id']==show_id).any():
+                logger.info('Repetido, pasando al siguiente')
                 continue
             show_true_id = show_id.split("/")[-1]
+            logger.info('Extrayendo anuncio con id {}'.format(show_true_id))
             path_show = "databases/hottescorts/{}/shows/{}".format(
                 categoria, show_true_id
             )
@@ -59,5 +64,6 @@ for categoria in ["escorts", "travestis"]:
                 "div", attrs={"class": "contenidor-fotos-fitxa-desktop"}
             ).find_all("img")
             images = list(map(lambda x: x.attrs.get("src"), images))
+            logger.info('Descargando imagenes')
             for image in images:
                 get_image_from_url(image, path_show)
