@@ -7,6 +7,8 @@ import pickle
 from bs4 import BeautifulSoup
 from selenium.common.exceptions import NoSuchElementException
 import numpy as np
+import pandas as pd
+import time
 
 def apply_action(driver, action):
     try:
@@ -164,3 +166,21 @@ def scroll_down(driver):
 
 def drop_nones(nodes):
     return nodes[nodes != None]
+
+def get_image_from_url(url, path):
+    image_name = url.split('/')[-1]
+    try:
+        response = requests.get(url)
+    except:
+        try:
+            time.sleep(1)
+            response = requests.get(url)
+        except:
+            print('Error en el anuncio {}'.format(url))
+            csv = pd.read_csv('data/imagenes.csv')
+            csv.loc[len[csv]] = [url]
+            csv.to_csv('data/imagenes.csv', index=False)
+
+    with open(os.path.join(path,image_name), "wb") as img_file:
+        img_file.write(response.content)
+        img_file.close()
