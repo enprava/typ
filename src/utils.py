@@ -168,6 +168,14 @@ def save_node(node, path, file_name):
         file.write(node.page_source)
 
 
+def save_soup(soup, path, file_name):
+    if not os.path.exists(path):
+        os.makedirs(path)
+    with open(os.path.join(path, file_name), "w", encoding="utf-8") as file:
+        file.write(soup.prettify())
+        file.close()
+
+
 def save_pages(drivers, path):
     if not os.path.exists(path):
         os.makedirs(path)
@@ -198,23 +206,33 @@ def drop_nones(nodes):
     return nodes[nodes != None]
 
 
-def download_slow_as_a_turtle(hrefs, path):
+def download_images(soup, path):
+    imgs = soup.find("div", attrs={"class": "col-xs-12 col-md-6 colonna-r"}).find_all(
+        "img"
+    )
+    srcs = list(map(lambda x: x.attrs.get("src"), imgs))
+    for i in range(len(srcs)):
+        response = requests.get(srcs[i])
+        extension = srcs[i].split(".")[-1]
+        with open(os.path.join(path, str(i) + "." + extension), "wb") as file:
+            file.write(response.content)
+            file.close()
+
+
+def download(hrefs, path):
     if not os.path.exists(path):
         os.makedirs(path)
     for href in hrefs:
-        driver = init_driver(href)
-        anuncio_id = href.split('/')[-1]
-        print('Descargando {}'.format(anuncio_id))
+        response = requests.get(href)
+        soup = BeautifulSoup(response.text, "html.parser")
+        anuncio_id = href.split("/")[-1]
+        print("Descargando {}".format(anuncio_id))
         custom_path = os.path.join(path, anuncio_id)
-        try:
-            do_click(driver, [[By.CSS_SELECTOR, ".cookie_disclaimer_button"]])
-        except:
-            print("No hacemos click")
         if not os.path.exists(custom_path):
             os.makedirs(custom_path)
-        save_node(driver, custom_path, anuncio_id + ".html")
-        get_imgs_from_node(driver, custom_path)
-        driver.close()
+
+        save_soup(soup, custom_path, anuncio_id + ".html")
+        download_images(soup, custom_path)
 
 
 def get_array_1_len(number):
