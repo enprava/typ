@@ -207,9 +207,12 @@ def drop_nones(nodes):
 
 
 def download_images(soup, path):
-    imgs = soup.find("div", attrs={"class": "col-xs-12 col-md-6 colonna-r"}).find_all(
-        "img"
-    )
+    try:
+        imgs = soup.find(
+            "div", attrs={"class": "col-xs-12 col-md-6 colonna-r"}
+        ).find_all("img")
+    except:
+        imgs = [soup.find("img", attrs={"class": "user_image"})]
     srcs = list(map(lambda x: x.attrs.get("src"), imgs))
     for i in range(len(srcs)):
         response = requests.get(srcs[i])
