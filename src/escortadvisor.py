@@ -75,6 +75,7 @@ for information in info:
                 "Descargando página {} de {}. Ciudad: {}".format(i, npages, categoria)
             )
             response = requests.get(url.format(i))
+            time.sleep(2)
             soup = BeautifulSoup(response.text, 'html.parser')
             logger.info("Guardando listas")
 

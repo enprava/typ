@@ -8,6 +8,7 @@ from bs4 import BeautifulSoup
 from selenium.common.exceptions import NoSuchElementException
 import numpy as np
 import math
+import time
 
 
 def apply_action(driver, action):
@@ -216,6 +217,7 @@ def download_images(soup, path):
     srcs = list(map(lambda x: x.attrs.get("src"), imgs))
     for i in range(len(srcs)):
         response = requests.get(srcs[i])
+        time.sleep(2)
         extension = srcs[i].split(".")[-1]
         with open(os.path.join(path, str(i) + "." + extension), "wb") as file:
             file.write(response.content)
@@ -227,6 +229,7 @@ def download(hrefs, path):
         os.makedirs(path)
     for href in hrefs:
         response = requests.get(href)
+        time.sleep(2)
         soup = BeautifulSoup(response.text, "html.parser")
         anuncio_id = href.split("/")[-1]
         print("Descargando {}".format(anuncio_id))
