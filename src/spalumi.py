@@ -1,5 +1,11 @@
-from requests_html import HTMLSession
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.firefox.options import Options
+import time
 from bs4 import BeautifulSoup
+import os
+from utils import *
+import re
 
 enlaces = {
     "AcompanantesMadrid": "/f4/",
@@ -93,8 +99,41 @@ enlaces = {
     "TemasGeneralesTodaslascomunidades": "/f15/",
     "ConsultaMedicaTodaslascomunidades": "/f9/",
 }
+enlace_base = "https://spalumi.com"
+dir = 'databases/spalumi'
 
-session = HTMLSession()
-r = session.get("https://spalumi.com/")
-r.html.render()
-soup = BeautifulSoup(r.html.find("a", first=True).html, "html.parser")
+for name, url in enlaces.items():
+    print('Extrayendo {}'.format(name))
+    driver = webdriver.Firefox()
+    forum_id = url.replace('/', '').replace('f', '')
+    driver.get(enlace_base)
+    driver.find_element(By.ID, 'navbar_username').send_keys('kanali')
+    driver.find_element(By.ID, 'navbar_password').send_keys('indexa1234')
+    driver.find_element(By.CLASS_NAME, 'button').click()
+    time.sleep(10)
+    driver.get(f'{enlace_base}{url}')
+    table = driver.find_elements(By.CLASS_NAME,'tborder')[5]
+    for td in table.find_elements(By.TAG_NAME, 'td'):
+        if td.get_attribute('nowrap') is not None:
+            ultima = td.find_element(By.TAG_NAME, 'a').get_attribute('href')
+            ultima = ultima.split('/')[-1]
+            ultima = ultima.removeprefix('index').removesuffix('.html')
+
+    path = os.path.join(dir, url[1:])
+    print(path)
+    if not os.path.exists(path):
+        os.makedirs(path)
+    current_path = os.path.join(path, '1')
+    if not os.path.exists(current_path):
+        os.makedirs(current_path)
+
+    with open(os.path.join(current_path, 'list.html',), 'w', encoding='utf-8') as file:
+        print(os.path.join(current_path, 'list.html',))
+        file.write(driver.page_source)
+        file.close()
+    download(driver, f'{enlace_base}{url}', forum_id, current_path)
+    for i in range(2, int(ultima)+1):
+        print('Extrayendo pagina {} de {}'.format(i, ultima))
+        current_path = os.path.join(path, str(i))
+        download(driver, f'{enlace_base}{url}index{i}.html', forum_id, current_path)
+    driver.close()
