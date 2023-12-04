@@ -184,17 +184,19 @@ def drop_nones(nodes):
 
 def download_images(srcs, path):
     for i in range(len(srcs)):
-        response = requests.get(srcs[i])
+        try:
+            response = requests.get(srcs[i])
+        except:
+            continue
         extension = srcs[i].split(".")[-1]
-        if extension[-1] == '/':
-            extension = extension[:-1]
+        if '/' in extension:
+            extension = extension[:extension.find('/')]
         with open(os.path.join(path, str(i) + "." + extension), "wb") as file:
             file.write(response.content)
             file.close()
 
 
-def download(driver, enlace, forum_id, path):
-    driver.get(enlace)
+def download(driver, forum_id, path):
     tbody_id = f"threadbits_forum_{forum_id}"
     aes = driver.find_element(By.ID, tbody_id).find_elements(By.TAG_NAME, "a")
     enlaces = {}
@@ -208,6 +210,13 @@ def download(driver, enlace, forum_id, path):
     for anuncio_id, a in enlaces.items():
         print("Descargando anuncio con id {}".format(anuncio_id))
         driver.get(a)
+        try:
+            text = driver.find_element(By.TAG_NAME, 'body').text
+            index = text.find('Página')
+            aux = text[index:index+14][-2:]
+            paginas = int(aux)
+        except:
+            paginas = 1
         current_path = os.path.join(path, anuncio_id)
         if not os.path.exists(current_path):
             os.makedirs(current_path)
@@ -219,27 +228,25 @@ def download(driver, enlace, forum_id, path):
                 lambda y: "postimg" in y, map(lambda x: x.get_attribute("src"), imgs)
             )
         )
-        print("Descargando fotos")
+        # print("Descargando fotos")
         img_path = os.path.join(current_path, "imagenes")
         if not os.path.exists(img_path):
             os.makedirs(img_path)
         download_images(fotos, img_path)
-        print("Descargando paginas")
-        while True:
+        # print("Descargando paginas")
+        enlace = driver.current_url[:driver.current_url.find('.html')]
+        enlace = enlace + '/index{}/html'
+        with open(
+                os.path.join(current_path, "1.html"), "w", encoding="utf-8"
+            ) as file:
+                file.write(driver.page_source)
+                file.close()
+        for i in range(2,paginas+1):
+            current_enlace = enlace.format(i)
             print('Descargando pagina {}'.format(i))
+            driver.get(current_enlace)
             with open(
                 os.path.join(current_path, str(i) + ".html"), "w", encoding="utf-8"
             ) as file:
                 file.write(driver.page_source)
                 file.close()
-            try:
-                next = driver.find_element(By.CLASS_NAME, "pagenav").find_elements(
-                    By.TAG_NAME, "td"
-                )[-2]
-            except:
-                break
-            if "Siguiente" in next.get_attribute("title"):
-                next.click()
-            else:
-                break
-            i = i+1
