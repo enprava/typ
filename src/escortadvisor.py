@@ -33,11 +33,11 @@ info = [
     # {"148": "https://www.escort-advisor.xxx/escort/guadalajara/{}"},
     # {"323": "https://www.escort-advisor.xxx/escort/guipuzcoa/{}"},
     # {"50": "https://www.escort-advisor.xxx/escort/huelva/{}"},
-    {"134": "https://www.escort-advisor.xxx/escort/huesca/{}"},
-    {"279": "https://www.escort-advisor.xxx/escort/islasbaleares/{}"},
-    {"174": "https://www.escort-advisor.xxx/escort/jaen/{}"},
-    {"221": "https://www.escort-advisor.xxx/escort/larioja/{}"},
-    {"12": "https://www.escort-advisor.xxx/escort/lanzarote/{}"},
+    # {"134": "https://www.escort-advisor.xxx/escort/huesca/{}"},
+    # {"279": "https://www.escort-advisor.xxx/escort/islasbaleares/{}"},
+    # {"174": "https://www.escort-advisor.xxx/escort/jaen/{}"},
+    # {"221": "https://www.escort-advisor.xxx/escort/larioja/{}"},
+    # {"12": "https://www.escort-advisor.xxx/escort/lanzarote/{}"},
     {"301": "https://www.escort-advisor.xxx/escort/leon/{}"},
     {"97": "https://www.escort-advisor.xxx/escort/lleida/{}"},
     {"115": "https://www.escort-advisor.xxx/escort/lugo/{}"},
@@ -65,6 +65,11 @@ info = [
 ]
 
 global_start = time.time()
+
+options = Options()
+options.add_argument('--headless')
+driver = webdriver.Firefox(options=options)
+
 for information in info:
     for anuncios, url in information.items():
         start_time = time.time()
@@ -74,23 +79,26 @@ for information in info:
             logger.info(
                 "Descargando página {} de {}. Ciudad: {}".format(i, npages, categoria)
             )
-            response = requests.get(url.format(i))
+            driver.get(url.format(i))
+            response = driver.page_source
+            # response = requests.get(url.format(i))
+            # response = response.text
             time.sleep(2)
-            soup = BeautifulSoup(response.text, 'html.parser')
+            soup = BeautifulSoup(response, "html.parser")
             logger.info("Guardando listas")
 
-            save_soup(soup, f"databases/escort-advisor/lists/{categoria}", str(i) + ".html")
+            save_soup(
+                soup, f"databases/escort-advisor/lists/{categoria}", str(i) + ".html"
+            )
 
-            anuncios = soup.find_all('div',attrs={'class':'serp_block_container'})
+            anuncios = soup.find_all("div", attrs={"class": "serp_block_container"})
             hrefs = []
             for anuncio in anuncios:
-                a = anuncio.find('a')
+                a = anuncio.find("a")
                 if a:
                     hrefs.append(f"https://www.escort-advisor.xxx{a.attrs.get('href')}")
             logger.info("Comenzando extracción de shows")
-            download(
-                hrefs, f"databases/escort-advisor/shows/{categoria}"
-            )
+            download(hrefs, f"databases/escort-advisor/shows/{categoria}", driver)
             end_time = time.time()
         logger.info(
             "Se ha descargado {} en {} segundos".format(url, end_time - start_time)

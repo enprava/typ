@@ -224,19 +224,23 @@ def download_images(soup, path):
             file.close()
 
 
-def download(hrefs, path):
+def download(hrefs, path, driver):
     if not os.path.exists(path):
         os.makedirs(path)
     for href in hrefs:
-        response = requests.get(href)
-        time.sleep(2)
-        soup = BeautifulSoup(response.text, "html.parser")
+        # response = requests.get(href)
+        # response = response.text
         anuncio_id = href.split("/")[-1]
         print("Descargando {}".format(anuncio_id))
         custom_path = os.path.join(path, anuncio_id)
         if not os.path.exists(custom_path):
             os.makedirs(custom_path)
-
+        else:
+            continue
+        driver.get(href)
+        response = driver.page_source
+        time.sleep(2)
+        soup = BeautifulSoup(response, "html.parser")
         save_soup(soup, custom_path, anuncio_id + ".html")
         download_images(soup, custom_path)
 
