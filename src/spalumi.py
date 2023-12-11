@@ -17,29 +17,31 @@ enlaces = {
     # "SeXtremeMadrid": "/f87/",
     # "FotosFalsasMadrid": "/f10/", # Tenemos la mitad
     # "NuevosubforodeMasajistasyAcompanantes": "/f303/",
-    "SUBFORODEINFORMACIONYOPINIONESDELACOMUNIDADVALENCIANAyMURCIA": "/f21/",
-    "AcompanantesValencia": "/f29/",
-    "AcompanantesAlicante": "/f48/",
-    "AcompanantesMurcia": "/f47/",
-    "AcompanantesCastellon": "/f49/",
-    "TravestisValenciayTransexuales": "/f150/",
-    "SUBFORODEINFORMACIONYOPINIONESDEEUSKADIYNAVARRA": "/f59/",
-    "Acompanantesalava": "/f139/",
-    "AcompanantesGuipuzcoa": "/f140/",
-    "Vizcaya": "/f141/",
+    # "AcompanantesValencia": "/f285/",
+    # "MasajesEroticosValencia": "/f266/",
+    # "ClubsValencia": "/f275/",
+    # "ConsultasValencia": "/f261/",
+    # "AgenciasValencia": "/f263/",
+    # "AcompanantesAlicante": "/f48/"#PENDIENTE
+    # "AcompanantesMurcia": "/f47/",
+    # "AcompanantesCastellon": "/f49/",
+    # "TravestisValenciayTransexuales": "/f150/",
+    # "Acompanantesalava": "/f139/",
+    # "AcompanantesGuipuzcoa": "/f140/",
+    "AgenciasVizcaya": "/f241/",
+    "MasajesVizcaya": "/f242/",
+    "ConsultasVizcaya": "/f221/",
+    "AcompanantesVizcaya": "/f243/",
     "NuevosubforodeMasajistasyAcompanantesEuskadi": "/f304/",
     "AcompanantesNavarra": "/f219/",
     "FotosfalsasEuskadiyNavarra": "/f220/",
-    "SUBFORODEINFORMACIONYOPINIONESDEGALICIA": "/f57/",
     "ACoruna": "/f144/",
     "AcompanantesLugo": "/f145/",
     "AcompanantesOurense": "/f146/",
     "AcompanantesPontevedra": "/f147/",
-    "SUBFORODEINFORMACIONYOPINIONESDEARAGON": "/f19/",
     "Zaragoza": "/f28/",
     "AcompanantesTeruel": "/f123/",
     "AcompanantesHuesca": "/f122/",
-    "SUBFORODEINFORMACIONYOPINIONESDEANDALUCiA": "/f18/",
     "Sevilla": "/f26/",
     "AcompanantesCordoba": "/f66/",
     "AcompanantesCadiz": "/f67/",
@@ -49,7 +51,6 @@ enlaces = {
     "AcompanantesMalaga": "/f63/",
     "TravestisAndaluciayTransexuales": "/f149/",
     "AcompanantesAlmeria": "/f69/",
-    "SUBFORODEINFORMACIONYOPINIONESDECASTILLA-LEON": "/f54/",
     "AcompanantesAvila": "/f131/",
     "AcompanantesBurgos": "/f132/",
     "AcompanantesLeon": "/f133/",
@@ -59,16 +60,13 @@ enlaces = {
     "AcompanantesSoria": "/f137/",
     "AcompanantesValladolid": "/f27/",
     "AcompanantesZamora": "/f138/",
-    "SUBFORODEINFORMACIONDECASTILLALAMANCHA": "/f23/",
     "AcompanantesAlbacete": "/f126/",
     "AcompanantesCiudadReal": "/f127/",
     "AcompanantesCuenca": "/f128/",
     "AcompanantesGuadalajara": "/f129/",
     "AcompanantesToledo": "/f130/",
-    "SUBFORODEINFORMACIONYOPINIONESDEEXTREMADURA": "/f55/",
     "AcompanantesBadajoz": "/f142/",
     "AcompanantesCaceres": "/f143/",
-    "SUBFORODEINFORMACIONYOPINIONES:MASAUTONOMIAS": "/f24/",
     "AcompanantesAsturias": "/f20/",
     "AcompanantesBaleares": "/f53/",
     "AcompanantesCanarias": "/f60/",
@@ -76,7 +74,6 @@ enlaces = {
     "AcompanantesCeuta": "/f61/",
     "AcompanantesLaRioja": "/f22/",
     "AcompanantesMelilla": "/f62/",
-    "SUBFORODEINFORMACIONYOPINIONESDECATALUnA": "/f70/",
     "AcompanantesBarcelona": "/f72/",
     "PisosyAgenciasBarcelona": "/f73/",
     "ClubesBarcelona": "/f74/",
@@ -85,17 +82,6 @@ enlaces = {
     "AcompanantesLleida": "/f51/",
     "AcompanantesTarragona": "/f52/",
     "FotosfalsasdeCataluna": "/f236/",
-    "SUBFORODEINFORMACIONYOPINIONESDEELMUNDO": "/f71/",
-    "TVMundo": "/f151/",
-    "AcompanantesAmerica": "/f81/",
-    "AcompanantesAfrica": "/f82/",
-    "AcompanantesAsia": "/f83/",
-    "AcompanantesEuropa": "/f84/",
-    "AcompanantesOceania": "/f85/",
-    "SUBFOROGENERALWWW.SPALUMI.COM": "/f3/",
-    "TODOSOBRESPALUMI": "/f16/",
-    "TemasGeneralesTodaslascomunidades": "/f15/",
-    "ConsultaMedicaTodaslascomunidades": "/f9/",
 }
 enlace_base = "https://spalumi.com"
 dir = 'databases/spalumi'
@@ -130,7 +116,10 @@ for name, url in enlaces.items():
     text = driver.find_element(By.TAG_NAME, 'body').text
     index = text.find('Página')
     aux = text[index:index+14][-2:]
-    paginas = int(aux)
+    try:
+        paginas = int(aux)
+    except:
+        paginas = 1
     download(driver, forum_id, current_path)
     for i in range(2, paginas):
         print('Extrayendo pagina {} de {} en {}'.format(i, paginas, name))

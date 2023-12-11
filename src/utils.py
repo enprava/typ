@@ -220,6 +220,8 @@ def download(driver, forum_id, path):
         current_path = os.path.join(path, anuncio_id)
         if not os.path.exists(current_path):
             os.makedirs(current_path)
+        else: 
+            continue
         i = 1
         imgs = driver.find_elements(By.TAG_NAME, "img")
 
