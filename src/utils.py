@@ -209,7 +209,16 @@ def download(driver, forum_id, path):
             continue
     for anuncio_id, a in enlaces.items():
         print("Descargando anuncio con id {}".format(anuncio_id))
-        driver.get(a)
+        current_path = os.path.join(path, anuncio_id)
+        if not os.path.exists(current_path):
+            os.makedirs(current_path)
+        else: 
+            continue
+        try:
+            driver.get(a)
+        except:
+            print('Time out')
+            continue
         try:
             text = driver.find_element(By.TAG_NAME, 'body').text
             index = text.find('Página')
@@ -217,11 +226,6 @@ def download(driver, forum_id, path):
             paginas = int(aux)
         except:
             paginas = 1
-        current_path = os.path.join(path, anuncio_id)
-        if not os.path.exists(current_path):
-            os.makedirs(current_path)
-        else: 
-            continue
         i = 1
         imgs = driver.find_elements(By.TAG_NAME, "img")
 
